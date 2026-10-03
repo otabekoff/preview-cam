@@ -4,6 +4,8 @@ Open the settings window with the `⚙` control on the overlay, from the tray
 menu, or with `Ctrl + Alt + S`. Changes apply immediately and are saved
 automatically.
 
+![The settings window](/screenshots/settings.png)
+
 ## Camera
 
 | Setting | Meaning |

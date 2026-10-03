@@ -9,6 +9,16 @@ you work in other applications — for example while OBS Studio is recording.
 The camera *is* the window. There is no title bar, border or toolbar; controls
 appear only while the mouse is over the picture.
 
+![The Preview Cam overlay floating in the corner of a desktop](website/public/screenshots/overlay.png)
+
+| Rounded | Circle | Hover controls |
+| --- | --- | --- |
+| ![Rounded shape](website/public/screenshots/shape-rounded.png) | ![Circle shape](website/public/screenshots/shape-circle.png) | ![Hover controls](website/public/screenshots/controls.png) |
+
+| Settings | Tray menu |
+| --- | --- |
+| <img src="website/public/screenshots/settings.png" alt="Settings window" width="330"> | <img src="website/public/screenshots/tray-menu.png" alt="Tray menu" width="230"> |
+
 ## Download
 
 Get the latest installer (`PreviewCam-Setup-<version>.exe`) or the portable

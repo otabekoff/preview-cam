@@ -4,6 +4,8 @@ Preview Cam shows your webcam in a small floating window that stays above
 your other applications. It is meant as a self-view: you can see yourself
 while you record a tutorial, present slides or stream.
 
+![The overlay floating in the corner of a desktop](/screenshots/overlay.png)
+
 ## First launch
 
 After [installing](/download), start **Preview Cam** from the Start menu.
@@ -33,6 +35,12 @@ After [installing](/download), start **Preview Cam** from the Start menu.
 The controls that appear on hover are, from left to right: settings, mirror,
 next shape, always on top, and hide to tray.
 
+![The control strip shown while the mouse is over the overlay](/screenshots/controls.png)
+
+Right-click the tray icon for the menu:
+
+![Tray menu](/screenshots/tray-menu.png)
+
 ## Click-through
 
 With click-through on, mouse clicks go through the overlay to whatever is
@@ -48,6 +56,10 @@ restart.
 Choose between rectangle, rounded rectangle, circle, 16:9 and 4:3. The area
 outside the shape is truly transparent — you see, and can click, what is
 behind it.
+
+| Rectangle | Rounded | Circle |
+| --- | --- | --- |
+| ![Rectangle](/screenshots/shape-rectangle.png) | ![Rounded](/screenshots/shape-rounded.png) | ![Circle](/screenshots/shape-circle.png) |
 
 If your camera removes the background (for example NVIDIA Broadcast with
 *Virtual background → Remove*), select that camera and the overlay shows
