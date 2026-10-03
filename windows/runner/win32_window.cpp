@@ -16,7 +16,7 @@ namespace {
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
 #endif
 
-constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
+constexpr const wchar_t kWindowClassName[] = L"PREVIEW_CAM_WINDOW";
 
 /// Registry key for app theme preference.
 ///
@@ -30,12 +30,6 @@ constexpr const wchar_t kGetPreferredBrightnessRegValue[] = L"AppsUseLightTheme"
 static int g_active_window_count = 0;
 
 using EnableNonClientDpiScaling = BOOL __stdcall(HWND hwnd);
-
-// Scale helper to convert logical scaler values to physical using passed in
-// scale factor
-int Scale(int source, double scale_factor) {
-  return static_cast<int>(source * scale_factor);
-}
 
 // Dynamically loads the |EnableNonClientDpiScaling| from the User32 module.
 // This API is only needed for PerMonitor V1 awareness mode.
@@ -120,25 +114,24 @@ Win32Window::~Win32Window() {
   Destroy();
 }
 
+// static
+const wchar_t* Win32Window::ClassName() {
+  return kWindowClassName;
+}
+
 bool Win32Window::Create(const std::wstring& title,
-                         const Point& origin,
-                         const Size& size) {
+                         const RECT& frame,
+                         DWORD style,
+                         DWORD ex_style) {
   Destroy();
 
   const wchar_t* window_class =
       WindowClassRegistrar::GetInstance()->GetWindowClass();
 
-  const POINT target_point = {static_cast<LONG>(origin.x),
-                              static_cast<LONG>(origin.y)};
-  HMONITOR monitor = MonitorFromPoint(target_point, MONITOR_DEFAULTTONEAREST);
-  UINT dpi = FlutterDesktopGetDpiForMonitor(monitor);
-  double scale_factor = dpi / 96.0;
-
-  HWND window = CreateWindow(
-      window_class, title.c_str(), WS_OVERLAPPEDWINDOW,
-      Scale(origin.x, scale_factor), Scale(origin.y, scale_factor),
-      Scale(size.width, scale_factor), Scale(size.height, scale_factor),
-      nullptr, nullptr, GetModuleHandle(nullptr), this);
+  HWND window = CreateWindowEx(
+      ex_style, window_class, title.c_str(), style, frame.left, frame.top,
+      frame.right - frame.left, frame.bottom - frame.top, nullptr, nullptr,
+      GetModuleHandle(nullptr), this);
 
   if (!window) {
     return false;

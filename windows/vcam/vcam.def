@@ -1,0 +1,4 @@
+LIBRARY preview_vcam
+EXPORTS
+  DllGetClassObject PRIVATE
+  DllCanUnloadNow PRIVATE

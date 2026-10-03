@@ -12,29 +12,20 @@
 // rendering and input handling
 class Win32Window {
  public:
-  struct Point {
-    unsigned int x;
-    unsigned int y;
-    Point(unsigned int x, unsigned int y) : x(x), y(y) {}
-  };
-
-  struct Size {
-    unsigned int width;
-    unsigned int height;
-    Size(unsigned int width, unsigned int height)
-        : width(width), height(height) {}
-  };
-
   Win32Window();
   virtual ~Win32Window();
 
-  // Creates a win32 window with |title| that is positioned and sized using
-  // |origin| and |size|. New windows are created on the default monitor. Window
-  // sizes are specified to the OS in physical pixels, hence to ensure a
-  // consistent size this function will scale the inputted width and height as
-  // as appropriate for the default monitor. The window is invisible until
-  // |Show| is called. Returns true if the window was created successfully.
-  bool Create(const std::wstring& title, const Point& origin, const Size& size);
+  // Name of the window class shared by every window of this application.
+  static const wchar_t* ClassName();
+
+  // Creates a win32 window with |title|. |frame| is the outer window
+  // rectangle in physical pixels (virtual-screen coordinates), so callers are
+  // responsible for DPI scaling. The window is invisible until |Show| is
+  // called. Returns true if the window was created successfully.
+  bool Create(const std::wstring& title,
+              const RECT& frame,
+              DWORD style,
+              DWORD ex_style);
 
   // Show the current window. Returns true if the window was successfully shown.
   bool Show();
@@ -70,6 +61,9 @@ class Win32Window {
 
   // Called when Destroy is called.
   virtual void OnDestroy();
+
+  // The hosted Flutter view window, or nullptr.
+  HWND child_content() const { return child_content_; }
 
  private:
   friend class WindowClassRegistrar;

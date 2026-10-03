@@ -1,0 +1,20 @@
+{
+  "C_Cpp.default.cppStandard": "c++17",
+  "C_Cpp.default.intelliSenseMode": "windows-msvc-x64",
+  "C_Cpp.clang_format_fallbackStyle": "Chromium",
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [80]
+  },
+  "[cpp]": {
+    "editor.rulers": [80]
+  },
+  "files.associations": {
+    "*.def": "plaintext"
+  },
+  "search.exclude": {
+    "build": true,
+    ".dart_tool": true,
+    "windows/flutter/ephemeral": true
+  }
+}

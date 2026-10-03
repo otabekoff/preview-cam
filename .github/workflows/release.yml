@@ -1,0 +1,68 @@
+name: Release
+
+# Builds the Windows installer and portable zip.
+#
+# Pushing a tag such as v0.0.1 publishes them as a GitHub release; the tag
+# must match the version in pubspec.yaml. Running the workflow by hand only
+# uploads the files as a build artifact.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Check that the tag matches pubspec.yaml
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*(\d+\.\d+\.\d+)').Matches[0].Groups[1].Value
+          if ("v$version" -ne "${{ github.ref_name }}") {
+            throw "Tag ${{ github.ref_name }} does not match pubspec version $version."
+          }
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Install NSIS
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\NSIS\makensis.exe")) {
+            choco install nsis -y --no-progress
+          }
+
+      - name: Build installer and portable zip
+        shell: pwsh
+        run: ./installer/build.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-cam-windows
+          path: |
+            build/installer/*.exe
+            build/installer/*.zip
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = Get-ChildItem build/installer -File | Where-Object { $_.Extension -in '.exe', '.zip' } | ForEach-Object { $_.FullName }
+          gh release create "${{ github.ref_name }}" $files --title "Preview Cam ${{ github.ref_name }}" --generate-notes
