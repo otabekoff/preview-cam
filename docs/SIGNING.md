@@ -19,20 +19,19 @@ until the two repository settings in step 4 exist, so releases keep working
    whether to accept it; this is a manual review on their side.
    What the terms ask of the project, and where it is covered:
 
-   | Requirement | Status |
-   | --- | --- |
-   | OSI-approved licence, no proprietary parts | MIT, see `LICENSE` |
-   | Released and documented | GitHub releases, `README.md` |
-   | "Code signing policy" on the project page | `README.md` |
-   | Privacy statement | `README.md` (no network use) |
-   | Product name and version in every signed binary | `Runner.rc`, `windows/vcam/vcam.rc`, installer version keys |
-   | Uninstaller | provided by the installer |
-   | Multi-factor authentication for all team members | enable on GitHub and SignPath |
-   | Each signing request approved by a team member | done in SignPath per release |
+   | Requirement                                      | Status                                                      |
+   | ------------------------------------------------ | ----------------------------------------------------------- |
+   | OSI-approved licence, no proprietary parts       | MIT, see `LICENSE`                                          |
+   | Released and documented                          | GitHub releases, `README.md`                                |
+   | "Code signing policy" on the project page        | `README.md`                                                 |
+   | Privacy statement                                | `README.md` (no network use)                                |
+   | Product name and version in every signed binary  | `Runner.rc`, `windows/vcam/vcam.rc`, installer version keys |
+   | Uninstaller                                      | provided by the installer                                   |
+   | Multi-factor authentication for all team members | enable on GitHub and SignPath                               |
+   | Each signing request approved by a team member   | done in SignPath per release                                |
 
 2. **Create the project in SignPath** (after acceptance) with these names,
    which the workflow expects:
-
    - project slug: `preview-cam`
    - signing policy slug: `release-signing`
    - artifact configuration `app`: contents of `installer/signpath/app.xml`
@@ -45,7 +44,6 @@ until the two repository settings in step 4 exist, so releases keep working
 
 4. **Add the repository settings** (GitHub → Settings → Secrets and
    variables → Actions):
-
    - secret `SIGNPATH_API_TOKEN`: API token of a SignPath user allowed to
      submit signing requests
    - variable `SIGNPATH_ORGANIZATION_ID`: the SignPath organisation id

@@ -1,5 +1,7 @@
 # Preview Cam
 
+**Website:** <https://otabekoff.github.io/preview-cam/> · [Download](https://otabekoff.github.io/preview-cam/download) · [Privacy policy](https://otabekoff.github.io/preview-cam/privacy)
+
 A floating webcam self-view for Windows 11: a frameless, transparent,
 always-on-top overlay that shows your camera in a corner of the screen while
 you work in other applications — for example while OBS Studio is recording.
