@@ -219,6 +219,17 @@ class SettingsView extends StatelessWidget {
         value: s.virtualCamera,
         onChanged: (value) => link.patch({'virtualCamera': value}),
       ),
+      if (s.virtualCamera)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            t.virtualCameraHint,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
     ];
   }
 

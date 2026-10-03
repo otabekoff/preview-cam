@@ -90,6 +90,7 @@ abstract class AppStrings {
   String get mirrorPreview;
   String get transparentBackground;
   String get virtualCamera;
+  String get virtualCameraHint;
   String get cornerRadius;
   String get opacity;
   String get overlaySize;
@@ -255,6 +256,10 @@ class _English extends AppStrings {
       'Transparent background (if the camera removes it)';
   @override
   String get virtualCamera => 'Virtual camera for OBS ("Preview Cam" device)';
+  @override
+  String get virtualCameraHint =>
+      'In OBS add a Video Capture Device source and choose the device '
+      '"Preview Cam". Window Capture cannot show transparency.';
   @override
   String get cornerRadius => 'Corner radius';
   @override
@@ -458,6 +463,10 @@ class _Uzbek extends AppStrings {
   String get virtualCamera =>
       'OBS uchun virtual kamera (“Preview Cam” qurilmasi)';
   @override
+  String get virtualCameraHint =>
+      'OBS’da “Video Capture Device” manbasini qo‘shing va “Preview Cam” '
+      'qurilmasini tanlang. “Window Capture” shaffoflikni ko‘rsata olmaydi.';
+  @override
   String get cornerRadius => 'Burchak radiusi';
   @override
   String get opacity => 'Noshaffoflik';
@@ -659,6 +668,10 @@ class _Russian extends AppStrings {
   @override
   String get virtualCamera =>
       'Виртуальная камера для OBS (устройство «Preview Cam»)';
+  @override
+  String get virtualCameraHint =>
+      'В OBS добавьте источник «Устройство захвата видео» и выберите '
+      'устройство «Preview Cam». «Захват окна» не передаёт прозрачность.';
   @override
   String get cornerRadius => 'Радиус углов';
   @override
