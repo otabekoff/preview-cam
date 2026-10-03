@@ -15,12 +15,6 @@ hero:
     - theme: alt
       text: Getting started
       link: /guide/getting-started
-    - theme: alt
-      text: Source on GitHub
-      link: https://github.com/otabekoff/preview-cam
-    - theme: alt
-      text: ♥ Donate
-      link: https://taps.uz/uzhandy
 
 features:
   - title: The camera is the window
@@ -40,8 +34,6 @@ features:
 <div class="showcase">
 
 ## See it
-
-![The Preview Cam overlay floating in the corner of a desktop](/screenshots/overlay.png)
 
 <div class="showcase-row">
 
