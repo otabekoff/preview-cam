@@ -36,8 +36,10 @@ removed background stay transparent.
 2. In OBS: **Sources → + → Video Capture Device**.
 3. In the **Device** list choose **Preview Cam**.
 
-If the corners appear black, set *Resolution/FPS Type* to **Custom** and
-*Video Format* to **ARGB** in the source's properties.
+The camera delivers ARGB video only, so OBS always receives the alpha
+channel. If the corners still look filled after updating Preview Cam, OBS is
+using the previous version of the camera: remove the source and add it again,
+or restart OBS.
 
 Good to know:
 

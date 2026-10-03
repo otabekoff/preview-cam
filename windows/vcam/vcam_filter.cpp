@@ -6,6 +6,11 @@
 // through shared memory (see vcam_protocol.h) as ARGB32 video, i.e. with an
 // alpha channel, so the overlay's rounded corners / circle stay transparent.
 //
+// ARGB32 is deliberately the only format offered. If plain RGB32 were
+// available too, consumers that choose a format by themselves (OBS with
+// "Resolution/FPS Type: Device Default") may take it, and the picture would
+// arrive with opaque black where it should be transparent.
+//
 // It is written against the raw DirectShow COM interfaces (no base-class
 // library) and links the C runtime statically, so it has no dependencies
 // beyond Windows.
@@ -229,10 +234,10 @@ class MediaTypeEnum : public IEnumMediaTypes {
 
   STDMETHODIMP Next(ULONG count, AM_MEDIA_TYPE** types, ULONG* fetched) override {
     ULONG done = 0;
-    while (done < count && position_ < 2) {
+    while (done < count && position_ < 1) {
       auto* type =
           static_cast<AM_MEDIA_TYPE*>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
-      if (!type || !FillVideoType(type, width_, height_, position_ == 0)) {
+      if (!type || !FillVideoType(type, width_, height_, true)) {
         CoTaskMemFree(type);
         break;
       }
@@ -246,7 +251,7 @@ class MediaTypeEnum : public IEnumMediaTypes {
   }
   STDMETHODIMP Skip(ULONG count) override {
     position_ += count;
-    return position_ <= 2 ? S_OK : S_FALSE;
+    return position_ <= 1 ? S_OK : S_FALSE;
   }
   STDMETHODIMP Reset() override {
     position_ = 0;
@@ -365,18 +370,18 @@ class OutputPin : public IPin, public IAMStreamConfig, public IKsPropertySet {
     return S_OK;
   }
   STDMETHODIMP GetNumberOfCapabilities(int* count, int* size) override {
-    *count = 2;
+    *count = 1;
     *size = sizeof(VIDEO_STREAM_CONFIG_CAPS);
     return S_OK;
   }
   STDMETHODIMP GetStreamCaps(int index,
                              AM_MEDIA_TYPE** type,
                              BYTE* caps_bytes) override {
-    if (index < 0 || index > 1) {
+    if (index != 0) {
       return S_FALSE;
     }
     *type = static_cast<AM_MEDIA_TYPE*>(CoTaskMemAlloc(sizeof(AM_MEDIA_TYPE)));
-    if (!*type || !FillVideoType(*type, width_, height_, index == 0)) {
+    if (!*type || !FillVideoType(*type, width_, height_, true)) {
       CoTaskMemFree(*type);
       *type = nullptr;
       return E_OUTOFMEMORY;
@@ -451,13 +456,10 @@ class OutputPin : public IPin, public IAMStreamConfig, public IKsPropertySet {
         type->cbFormat < sizeof(VIDEOINFOHEADER) || !type->pbFormat) {
       return false;
     }
-    if (type->subtype == MEDIASUBTYPE_ARGB32) {
-      *alpha = true;
-    } else if (type->subtype == MEDIASUBTYPE_RGB32) {
-      *alpha = false;
-    } else {
+    if (type->subtype != MEDIASUBTYPE_ARGB32) {
       return false;
     }
+    *alpha = true;
     const auto& header =
         reinterpret_cast<const VIDEOINFOHEADER*>(type->pbFormat)->bmiHeader;
     return header.biWidth == width_ && header.biHeight == height_ &&
@@ -814,9 +816,9 @@ STDMETHODIMP OutputPin::Connect(IPin* receiver, const AM_MEDIA_TYPE* type) {
       type->majortype != MEDIATYPE_Video) {
     return VFW_E_TYPE_NOT_ACCEPTED;
   }
+  allow_opaque = false;  // Only ARGB32 is offered; see the top of this file.
   if (type && type->subtype != GUID_NULL) {
     allow_alpha = type->subtype == MEDIASUBTYPE_ARGB32;
-    allow_opaque = type->subtype == MEDIASUBTYPE_RGB32;
   }
 
   // The format chosen with IAMStreamConfig::SetFormat goes first.

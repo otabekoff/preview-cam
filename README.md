@@ -188,8 +188,8 @@ Notes on the virtual camera:
   delivers a fully transparent picture.
 - It is registered for the current Windows user only (no administrator
   rights) and removed again when the setting is switched off or the
-  application is uninstalled. Any DirectShow application can use it;
-  applications that ignore alpha get black outside the shape.
+  application is uninstalled. Any DirectShow application that accepts
+  ARGB video can use it.
 - Frames are only prepared while some application is actually reading the
   camera.
 
@@ -355,8 +355,8 @@ into a named shared-memory block as straight-alpha BGRA
 consumer is connected. The other part is `preview_vcam.dll`
 (`windows/vcam/vcam_filter.cpp`), a DirectShow source filter written against
 the raw COM interfaces with a statically linked C runtime. Camera consumers
-load it in-process; its capture pin offers ARGB32 (and RGB32) at the current
-output size and a streaming thread copies the newest shared frame into media
+load it in-process; its capture pin offers ARGB32 only (so consumers cannot
+pick a format without alpha) at the current output size and a streaming thread copies the newest shared frame into media
 samples. The application registers the filter per user under
 `HKCU\Software\Classes` (the COM class and its entry in the video capture
 device category), so no elevation is needed. What it registers is a copy of
