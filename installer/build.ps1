@@ -53,7 +53,7 @@ $version = $versionLine.Matches[0].Groups[1].Value
 if (-not $SkipBuild) {
   # A previous build may have left plugin DLLs that are no longer used.
   if (Test-Path $release) {
-    Get-ChildItem $release -Filter '*.dll' | Remove-Item -Force
+    Get-ChildItem $release -Filter '*.dll' | Remove-Item -Force -ErrorAction SilentlyContinue
   }
   Push-Location $root
   try {
@@ -71,6 +71,8 @@ if (-not (Test-Path (Join-Path $release 'preview.exe'))) {
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Force $stage | Out-Null
 Copy-Item (Join-Path $release '*') $stage -Recurse
+# Leftovers of a development build (a locked DLL moved out of the way).
+Get-ChildItem $stage -Filter '*.old' | Remove-Item -Force
 
 # Visual C++ runtime, deployed app-locally. Prefer the redistributable copy
 # shipped with Visual Studio; fall back to the system's.

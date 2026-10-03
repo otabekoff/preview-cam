@@ -120,6 +120,11 @@ Section "Uninstall"
   DeleteRegKey HKCU "Software\Classes\CLSID\{860BB310-5D01-11D0-BD3B-00A0C911CE86}\Instance\${VCAM_CLSID}"
   DeleteRegKey HKCU "Software\Classes\CLSID\${VCAM_CLSID}"
   DeleteRegKey HKCU "Software\PreviewCam"
+  ; The registered copy of the camera filter. Files still loaded by another
+  ; program are removed at the next restart.
+  Delete /REBOOTOK "$LOCALAPPDATA\PreviewCam\vcam\*.dll"
+  RMDir "$LOCALAPPDATA\PreviewCam\vcam"
+  RMDir "$LOCALAPPDATA\PreviewCam"
   DeleteRegKey HKCU "${UNINSTALL_KEY}"
 
   ; Only files this installer put there: the application's own folder.

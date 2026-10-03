@@ -22,8 +22,9 @@
 // Dart over the `preview/native` method channel (see
 // lib/platform/windows/windows_overlay_service.dart):
 //
-//  * window styles      WS_POPUP (no caption/border), WS_EX_TOOLWINDOW
-//                       (no taskbar button), HWND_TOPMOST (always on top)
+//  * window styles      WS_POPUP (no caption/border), a hidden owner window
+//                       or WS_EX_TOOLWINDOW (no taskbar button),
+//                       HWND_TOPMOST (always on top)
 //  * transparency       DwmExtendFrameIntoClientArea + a window region that
 //                       matches the camera shape
 //  * click-through      WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE
@@ -80,7 +81,9 @@ class OverlayWindow : public Win32Window {
 
   void ApplyTopmost();
   void SetClickThrough(bool enabled);
-  void SetSkipTaskbar(bool skip);
+  // |skip|: no taskbar button. |capturable|: stay listed by screen-capture
+  // tools while hidden from the taskbar (at the price of an Alt+Tab entry).
+  void SetSkipTaskbar(bool skip, bool capturable);
   void SetOpacity(double opacity);
   // Clips the window (rendering and hit testing) to the camera shape.
   void UpdateRegion();
@@ -117,6 +120,8 @@ class OverlayWindow : public Win32Window {
   double aspect_ratio_ = 0;    // width / height; 0 = unconstrained
   double min_size_ = 90;       // logical pixels, shorter side
   BYTE alpha_ = 255;
+  // Hidden window that owns the overlay in "hidden but capturable" mode.
+  HWND taskbar_owner_ = nullptr;
   bool always_on_top_ = true;
   bool click_through_ = false;
   // True while SetWindowPos is called on behalf of Dart, which has already

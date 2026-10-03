@@ -97,6 +97,7 @@ abstract class AppStrings {
   String get overlayHidden;
   String get show;
   String get hideFromTaskbar;
+  String get windowCapture;
   String get startWithWindows;
   String get rememberPosition;
   String get hoverControls;
@@ -268,6 +269,8 @@ class _English extends AppStrings {
   String get show => 'Show';
   @override
   String get hideFromTaskbar => 'Hide from taskbar';
+  @override
+  String get windowCapture => 'Allow window capture (OBS window list)';
   @override
   String get startWithWindows => 'Start with Windows';
   @override
@@ -469,6 +472,9 @@ class _Uzbek extends AppStrings {
   @override
   String get hideFromTaskbar => 'Vazifalar panelidan yashirish';
   @override
+  String get windowCapture =>
+      'Oynani yozib olishga ruxsat (OBS oynalar ro‘yxati)';
+  @override
   String get startWithWindows => 'Windows bilan birga ishga tushirish';
   @override
   String get rememberPosition => 'Joylashuvni eslab qolish';
@@ -667,6 +673,8 @@ class _Russian extends AppStrings {
   String get show => 'Показать';
   @override
   String get hideFromTaskbar => 'Скрыть с панели задач';
+  @override
+  String get windowCapture => 'Разрешить захват окна (список окон OBS)';
   @override
   String get startWithWindows => 'Запускать вместе с Windows';
   @override

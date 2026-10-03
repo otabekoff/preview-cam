@@ -83,7 +83,10 @@ abstract class OverlayPlatform {
 
   Future<void> setAlwaysOnTop(bool value);
   Future<void> setClickThrough(bool value);
-  Future<void> setSkipTaskbar(bool value);
+
+  /// [capturable]: while hidden from the taskbar, stay listed by
+  /// screen-capture tools (otherwise the window becomes a tool window).
+  Future<void> setSkipTaskbar(bool value, {bool capturable = true});
   Future<void> setOpacity(double value);
 
   /// [radius] is in logical pixels and only used for [NativeShape.rounded].

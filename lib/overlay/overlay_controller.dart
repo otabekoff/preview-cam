@@ -298,8 +298,11 @@ class OverlayController {
     if (changed((s) => s.alwaysOnTop)) {
       await platform.setAlwaysOnTop(next.alwaysOnTop);
     }
-    if (changed((s) => s.hideFromTaskbar)) {
-      await platform.setSkipTaskbar(next.hideFromTaskbar);
+    if (changed((s) => s.hideFromTaskbar) || changed((s) => s.windowCapture)) {
+      await platform.setSkipTaskbar(
+        next.hideFromTaskbar,
+        capturable: next.windowCapture,
+      );
     }
     if (changed((s) => s.clickThrough)) {
       await platform.setClickThrough(next.clickThrough);

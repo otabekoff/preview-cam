@@ -165,13 +165,12 @@ OverlayWindow::~OverlayWindow() {}
 
 bool OverlayWindow::CreateOverlay() {
   // WS_POPUP: no caption, no border, no system buttons.
-  // WS_EX_TOOLWINDOW: no taskbar button and no Alt+Tab entry (toggled by
-  // SetSkipTaskbar).
   // WS_EX_LAYERED: lets the window carry a constant alpha (opacity) and is a
   // prerequisite for WS_EX_TRANSPARENT click-through.
-  // The real position and size are applied by Dart before the window is shown.
+  // The real position and size, and how the window is kept off the taskbar
+  // (see SetSkipTaskbar), are applied by Dart before the window is shown.
   RECT frame = {0, 0, 320, 180};
-  return Create(kTitle, frame, WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+  return Create(kTitle, frame, WS_POPUP, WS_EX_LAYERED);
 }
 
 bool OverlayWindow::OnCreate() {
@@ -180,6 +179,13 @@ bool OverlayWindow::OnCreate() {
   }
   HWND hwnd = GetHandle();
   g_overlay = this;
+
+  // Never shown. Owning the overlay is one of the two ways it is kept off
+  // the taskbar; see SetSkipTaskbar.
+  taskbar_owner_ =
+      CreateWindowEx(WS_EX_TOOLWINDOW, L"STATIC", L"", WS_POPUP, 0, 0, 0, 0,
+                     nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
+  SetSkipTaskbar(true, true);
 
 
   SetLayeredWindowAttributes(hwnd, 0, alpha_, LWA_ALPHA);
@@ -289,6 +295,14 @@ void OverlayWindow::OnDestroy() {
   if (g_overlay == this) {
     g_overlay = nullptr;
   }
+  if (taskbar_owner_) {
+    // Detach first: destroying an owner destroys the windows it owns.
+    if (hwnd) {
+      SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, 0);
+    }
+    DestroyWindow(taskbar_owner_);
+    taskbar_owner_ = nullptr;
+  }
 
 
   Win32Window::OnDestroy();
@@ -362,25 +376,33 @@ void OverlayWindow::SetClickThrough(bool enabled) {
                    SWP_FRAMECHANGED);
 }
 
-void OverlayWindow::SetSkipTaskbar(bool skip) {
+void OverlayWindow::SetSkipTaskbar(bool skip, bool capturable) {
   HWND hwnd = GetHandle();
-  LONG_PTR ex_style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-  const bool skipping = (ex_style & WS_EX_TOOLWINDOW) != 0;
-  if (skipping == skip) {
-    return;
-  }
-  // The taskbar only re-evaluates a window when it is shown, so the style has
-  // to change while the window is hidden.
+  // The taskbar only re-evaluates a window when it is shown, so the change
+  // has to happen while the window is hidden.
   const bool visible = IsWindowVisible(hwnd) != FALSE;
   if (visible) {
     ShowWindow(hwnd, SW_HIDE);
   }
-  // A tool window has no taskbar button and is left out of Alt+Tab.
-  if (skip) {
-    ex_style = (ex_style | WS_EX_TOOLWINDOW) & ~WS_EX_APPWINDOW;
-  } else {
-    ex_style = (ex_style & ~WS_EX_TOOLWINDOW) | WS_EX_APPWINDOW;
+  // Three states:
+  //  * taskbar button:        WS_EX_APPWINDOW, no owner.
+  //  * hidden, capturable:    owned by a hidden window. The taskbar shows no
+  //                           button for owned windows, yet the overlay stays
+  //                           an ordinary window that OBS and other capture
+  //                           tools list as a "Window Capture" source.
+  //  * hidden, tool window:   WS_EX_TOOLWINDOW. Also absent from Alt+Tab,
+  //                           but capture tools leave tool windows out.
+  const bool owned = skip && capturable;
+  const bool tool = skip && !capturable;
+  LONG_PTR ex_style = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+  ex_style &= ~(WS_EX_TOOLWINDOW | WS_EX_APPWINDOW);
+  if (tool) {
+    ex_style |= WS_EX_TOOLWINDOW;
+  } else if (!skip) {
+    ex_style |= WS_EX_APPWINDOW;
   }
+  SetWindowLongPtr(hwnd, GWLP_HWNDPARENT,
+                   owned ? reinterpret_cast<LONG_PTR>(taskbar_owner_) : 0);
   SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex_style);
   if (visible) {
     ShowWindow(hwnd, SW_SHOWNOACTIVATE);
@@ -588,7 +610,8 @@ void OverlayWindow::HandleMethodCall(const MethodCall& call,
     SetClickThrough(BoolOr(args, false));
     result->Success();
   } else if (method == "setSkipTaskbar") {
-    SetSkipTaskbar(BoolOr(args, true));
+    SetSkipTaskbar(BoolOr(Find(map, "skip"), true),
+                   BoolOr(Find(map, "capturable"), true));
     result->Success();
   } else if (method == "setOpacity") {
     SetOpacity(NumberOr(args, 1.0));

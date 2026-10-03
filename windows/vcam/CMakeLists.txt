@@ -6,6 +6,16 @@ project(preview_vcam LANGUAGES CXX)
 add_library(preview_vcam SHARED
   "vcam_filter.cpp"
   "vcam.def"
+  "vcam.rc"
+)
+
+# Same version as the application (see vcam.rc).
+target_compile_definitions(preview_vcam PRIVATE
+  "FLUTTER_VERSION=\"${FLUTTER_VERSION}\""
+  "FLUTTER_VERSION_MAJOR=${FLUTTER_VERSION_MAJOR}"
+  "FLUTTER_VERSION_MINOR=${FLUTTER_VERSION_MINOR}"
+  "FLUTTER_VERSION_PATCH=${FLUTTER_VERSION_PATCH}"
+  "FLUTTER_VERSION_BUILD=${FLUTTER_VERSION_BUILD}"
 )
 
 target_compile_features(preview_vcam PRIVATE cxx_std_17)

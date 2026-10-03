@@ -83,8 +83,11 @@ class WindowsOverlayService implements OverlayPlatform {
       _channel.invokeMethod('setClickThrough', value);
 
   @override
-  Future<void> setSkipTaskbar(bool value) =>
-      _channel.invokeMethod('setSkipTaskbar', value);
+  Future<void> setSkipTaskbar(bool value, {bool capturable = true}) =>
+      _channel.invokeMethod('setSkipTaskbar', {
+        'skip': value,
+        'capturable': capturable,
+      });
 
   @override
   Future<void> setOpacity(double value) =>

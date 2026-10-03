@@ -341,6 +341,13 @@ class SettingsView extends StatelessWidget {
         onChanged: (value) => link.patch({'hideFromTaskbar': value}),
       ),
       _Toggle(
+        label: t.windowCapture,
+        value: s.windowCapture,
+        onChanged: s.hideFromTaskbar
+            ? (value) => link.patch({'windowCapture': value})
+            : null,
+      ),
+      _Toggle(
         label: t.startWithWindows,
         value: s.startWithWindows,
         onChanged: (value) => link.patch({'startWithWindows': value}),

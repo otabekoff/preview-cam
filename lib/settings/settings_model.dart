@@ -76,6 +76,7 @@ class AppSettings {
     this.alwaysOnTop = true,
     this.clickThrough = false,
     this.hideFromTaskbar = true,
+    this.windowCapture = true,
     this.startWithWindows = false,
     this.rememberPosition = true,
     this.hoverControls = true,
@@ -127,6 +128,11 @@ class AppSettings {
   final bool alwaysOnTop;
   final bool clickThrough;
   final bool hideFromTaskbar;
+
+  /// While hidden from the taskbar, stay selectable in the window lists of
+  /// screen-capture tools such as OBS. Off makes the overlay a tool window,
+  /// which also removes it from Alt+Tab but hides it from those lists.
+  final bool windowCapture;
   final bool startWithWindows;
   final bool rememberPosition;
   final bool hoverControls;
@@ -161,6 +167,7 @@ class AppSettings {
     bool? alwaysOnTop,
     bool? clickThrough,
     bool? hideFromTaskbar,
+    bool? windowCapture,
     bool? startWithWindows,
     bool? rememberPosition,
     bool? hoverControls,
@@ -188,6 +195,7 @@ class AppSettings {
     alwaysOnTop: alwaysOnTop ?? this.alwaysOnTop,
     clickThrough: clickThrough ?? this.clickThrough,
     hideFromTaskbar: hideFromTaskbar ?? this.hideFromTaskbar,
+    windowCapture: windowCapture ?? this.windowCapture,
     startWithWindows: startWithWindows ?? this.startWithWindows,
     rememberPosition: rememberPosition ?? this.rememberPosition,
     hoverControls: hoverControls ?? this.hoverControls,
@@ -215,6 +223,7 @@ class AppSettings {
     'alwaysOnTop': alwaysOnTop,
     'clickThrough': clickThrough,
     'hideFromTaskbar': hideFromTaskbar,
+    'windowCapture': windowCapture,
     'startWithWindows': startWithWindows,
     'rememberPosition': rememberPosition,
     'hoverControls': hoverControls,
@@ -265,6 +274,7 @@ class AppSettings {
       alwaysOnTop: read<bool>('alwaysOnTop') ?? d.alwaysOnTop,
       clickThrough: read<bool>('clickThrough') ?? d.clickThrough,
       hideFromTaskbar: read<bool>('hideFromTaskbar') ?? d.hideFromTaskbar,
+      windowCapture: read<bool>('windowCapture') ?? d.windowCapture,
       startWithWindows: read<bool>('startWithWindows') ?? d.startWithWindows,
       rememberPosition: read<bool>('rememberPosition') ?? d.rememberPosition,
       hoverControls: read<bool>('hoverControls') ?? d.hoverControls,

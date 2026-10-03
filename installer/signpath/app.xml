@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration "app".
+  Input: the GitHub Actions artifact "unsigned-app", a zip with the two
+  binaries built from this repository. Both are Authenticode-signed, and
+  signing is refused unless they carry this product's name.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="preview.exe" product-name="Preview Cam">
+      <authenticode-sign />
+    </pe-file>
+    <pe-file path="preview_vcam.dll" product-name="Preview Cam">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

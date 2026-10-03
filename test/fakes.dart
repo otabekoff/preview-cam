@@ -98,8 +98,8 @@ class FakeOverlayPlatform implements OverlayPlatform {
       calls.add('setClickThrough $value');
 
   @override
-  Future<void> setSkipTaskbar(bool value) async =>
-      calls.add('setSkipTaskbar $value');
+  Future<void> setSkipTaskbar(bool value, {bool capturable = true}) async =>
+      calls.add('setSkipTaskbar $value capturable=$capturable');
 
   @override
   Future<void> setOpacity(double value) async => calls.add('setOpacity $value');

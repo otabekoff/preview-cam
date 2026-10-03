@@ -22,6 +22,53 @@ bool SetString(const wchar_t* key, const wchar_t* name, const std::wstring& valu
          ERROR_SUCCESS;
 }
 
+// Copies the filter DLL to a per-user folder and returns the copy's path
+// (or |source| if that fails).
+//
+// Every application that lists cameras - browsers, chat clients, OBS - loads
+// the registered DLL and keeps it locked. Registering the file that sits
+// next to the executable would therefore make it impossible to update or
+// rebuild the application while any such program is running. The copy is
+// named after the source file's timestamp and size, so a new version gets a
+// new file and older copies are removed once nothing holds them any more.
+std::wstring DeployFilter(const std::wstring& source) {
+  WIN32_FILE_ATTRIBUTE_DATA info{};
+  wchar_t local[MAX_PATH];
+  const DWORD length = GetEnvironmentVariableW(L"LOCALAPPDATA", local, MAX_PATH);
+  if (length == 0 || length >= MAX_PATH ||
+      !GetFileAttributesExW(source.c_str(), GetFileExInfoStandard, &info)) {
+    return source;
+  }
+  std::wstring folder = std::wstring(local) + L"\\PreviewCam";
+  CreateDirectoryW(folder.c_str(), nullptr);
+  folder += L"\\vcam";
+  CreateDirectoryW(folder.c_str(), nullptr);
+
+  wchar_t name[96];
+  swprintf_s(name, L"preview_vcam_%08lx%08lx_%lu.dll",
+             info.ftLastWriteTime.dwHighDateTime,
+             info.ftLastWriteTime.dwLowDateTime, info.nFileSizeLow);
+  const std::wstring target = folder + L"\\" + name;
+  if (GetFileAttributesW(target.c_str()) == INVALID_FILE_ATTRIBUTES &&
+      !CopyFileW(source.c_str(), target.c_str(), TRUE)) {
+    return source;
+  }
+
+  // Best effort: copies still loaded somewhere simply fail to delete.
+  WIN32_FIND_DATAW found{};
+  HANDLE search =
+      FindFirstFileW((folder + L"\\preview_vcam_*.dll").c_str(), &found);
+  if (search != INVALID_HANDLE_VALUE) {
+    do {
+      if (_wcsicmp(found.cFileName, name) != 0) {
+        DeleteFileW((folder + L"\\" + found.cFileName).c_str());
+      }
+    } while (FindNextFileW(search, &found));
+    FindClose(search);
+  }
+  return target;
+}
+
 // Converts one premultiplied RGBA pixel to straight BGRA, scaling its alpha
 // by |coverage| (0..256) for the anti-aliased edge of the shape.
 inline void WritePixel(uint8_t* out, const uint8_t* in, unsigned coverage) {
@@ -70,6 +117,7 @@ bool VcamOutput::Register() {
   if (GetFileAttributesW(dll.c_str()) == INVALID_FILE_ATTRIBUTES) {
     return false;
   }
+  dll = DeployFilter(dll);
   // The COM class, and its entry in the capture-device category that camera
   // applications enumerate. Per-user keys are merged into HKEY_CLASSES_ROOT.
   return SetString(kClassKey, nullptr, VCAM_DEVICE_NAME) &&

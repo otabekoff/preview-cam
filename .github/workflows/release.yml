@@ -5,6 +5,11 @@ name: Release
 # Pushing a tag such as v0.0.1 publishes them as a GitHub release; the tag
 # must match the version in pubspec.yaml. Running the workflow by hand only
 # uploads the files as a build artifact.
+#
+# Code signing (optional, see docs/SIGNING.md): when the repository has the
+# SIGNPATH_API_TOKEN secret and the SIGNPATH_ORGANIZATION_ID variable, the
+# binaries and the installer are signed through SignPath. Without them the
+# workflow produces the same files unsigned.
 
 on:
   push:
@@ -14,10 +19,17 @@ on:
 
 permissions:
   contents: write
+  actions: read
+
+env:
+  SIGNPATH_PROJECT: preview-cam
+  SIGNPATH_POLICY: release-signing
 
 jobs:
   windows:
     runs-on: windows-latest
+    env:
+      SIGNING: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -39,6 +51,40 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
+      - name: Build application
+        run: flutter build windows --release
+
+      # --- Sign the application binaries (only when signing is configured) ---
+      - name: Upload unsigned binaries
+        if: env.SIGNING == 'true'
+        id: unsigned-app
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-app
+          path: |
+            build/windows/x64/runner/Release/preview.exe
+            build/windows/x64/runner/Release/preview_vcam.dll
+          if-no-files-found: error
+
+      - name: Sign binaries
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT }}
+          signing-policy-slug: ${{ env.SIGNPATH_POLICY }}
+          artifact-configuration-slug: app
+          github-artifact-id: ${{ steps.unsigned-app.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: build/signed-app
+
+      - name: Use signed binaries
+        if: env.SIGNING == 'true'
+        shell: pwsh
+        run: Copy-Item build/signed-app/* build/windows/x64/runner/Release/ -Force
+
+      # --- Package -----------------------------------------------------------
       - name: Install NSIS
         shell: pwsh
         run: |
@@ -48,8 +94,37 @@ jobs:
 
       - name: Build installer and portable zip
         shell: pwsh
-        run: ./installer/build.ps1
+        run: ./installer/build.ps1 -SkipBuild
 
+      # --- Sign the installer (only when signing is configured) --------------
+      - name: Upload unsigned installer
+        if: env.SIGNING == 'true'
+        id: unsigned-installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-installer
+          path: build/installer/PreviewCam-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Sign installer
+        if: env.SIGNING == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT }}
+          signing-policy-slug: ${{ env.SIGNPATH_POLICY }}
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: build/signed-installer
+
+      - name: Use signed installer
+        if: env.SIGNING == 'true'
+        shell: pwsh
+        run: Copy-Item build/signed-installer/*.exe build/installer/ -Force
+
+      # --- Publish -----------------------------------------------------------
       - uses: actions/upload-artifact@v4
         with:
           name: preview-cam-windows

@@ -11,8 +11,9 @@ appear only while the mouse is over the picture.
 
 Get the latest installer (`PreviewCam-Setup-<version>.exe`) or the portable
 zip from the [Releases](https://github.com/otabekoff/preview-cam/releases)
-page. Windows 10/11, 64-bit. The installer is not code-signed, so Windows
-SmartScreen asks for confirmation the first time.
+page. Windows 10/11, 64-bit. Releases are not code-signed yet (see
+[Code signing policy](#code-signing-policy)), so Windows SmartScreen asks for
+confirmation the first time: *More info → Run anyway*.
 
 ## Features
 
@@ -90,8 +91,8 @@ registers an uninstaller under Settings → Apps. Uninstalling keeps your
 settings unless you choose to remove them. `/S` installs or uninstalls
 silently.
 
-The installer is not code-signed, so Windows SmartScreen shows an
-"unknown publisher" warning the first time it is run on another machine.
+Local builds are not code-signed. Signing of published releases is described
+in [docs/SIGNING.md](docs/SIGNING.md).
 
 ## Using it
 
@@ -154,9 +155,16 @@ that window is not part of the recording. Two ways to get the camera in:
   "Camera (NVIDIA Broadcast)". You get the plain rectangular picture and
   shape it with OBS filters.
 
-Capturing the overlay itself with a second *Window Capture* source does not
-work well: OBS draws captured windows opaque (transparent areas turn black),
-and it does not list the overlay while "Hide from taskbar" is on.
+- **Capture the overlay as a window**: add a second *Window Capture* source
+  and choose `[preview.exe]: Preview Cam`. This needs Settings → Behavior →
+  *Allow window capture* (on by default). OBS draws captured windows opaque,
+  so the area outside a rounded or circular shape comes out black; use the
+  virtual camera when you need transparency.
+
+*Allow window capture* decides how the overlay is hidden from the taskbar.
+On, it stays an ordinary window that capture tools list, and it can appear in
+Alt+Tab. Off, it becomes a tool window: never in Alt+Tab, but also not in
+OBS's window list.
 
 Notes on the virtual camera:
 
@@ -262,8 +270,12 @@ Dart over a single method channel, `preview/native`.
 sizing frame — and `DWMWA_WINDOW_CORNER_PREFERENCE`/`DWMWA_BORDER_COLOR` are
 set so Windows 11 adds neither rounded corners nor its 1px border.
 
-**No taskbar button.** `WS_EX_TOOLWINDOW` while "Hide from taskbar" is on,
-which also keeps the overlay out of Alt+Tab; `WS_EX_APPWINDOW` otherwise.
+**No taskbar button.** Two mechanisms, chosen by the *Allow window capture*
+setting. Capturable: the overlay is owned by a hidden helper window — the
+taskbar shows no button for owned windows, and capture tools still list it.
+Not capturable: `WS_EX_TOOLWINDOW`, which also keeps it out of Alt+Tab but
+makes OBS and similar tools skip it. With "Hide from taskbar" off the window
+gets `WS_EX_APPWINDOW`.
 
 **Transparency.** `DwmExtendFrameIntoClientArea` with `-1` margins makes the
 compositor honour the alpha channel of what Flutter renders, so unpainted
@@ -335,7 +347,10 @@ load it in-process; its capture pin offers ARGB32 (and RGB32) at the current
 output size and a streaming thread copies the newest shared frame into media
 samples. The application registers the filter per user under
 `HKCU\Software\Classes` (the COM class and its entry in the video capture
-device category), so no elevation is needed.
+device category), so no elevation is needed. What it registers is a copy of
+the DLL under `%LOCALAPPDATA%\PreviewCam\vcam`: every program that lists
+cameras (browsers included) loads and locks the registered file, and the copy
+keeps that lock away from the installed application so it can be updated.
 
 **Camera hot-plug.** `RegisterDeviceNotification` for the camera device
 interface classes; `WM_DEVICECHANGE` tells Dart to re-enumerate.
@@ -372,6 +387,30 @@ All texts live in `lib/l10n/app_strings.dart`, one class per language; the
 tray menu receives its labels from there too. Adding a language means adding
 a value to `AppLanguage` and one more subclass — the compiler points out any
 text that is missing.
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate
+by [SignPath Foundation](https://signpath.org). This is the signing
+arrangement the project is set up for; releases stay unsigned until SignPath
+Foundation has accepted it. Setup: [docs/SIGNING.md](docs/SIGNING.md).
+
+Release binaries are built from this repository by GitHub Actions
+(`.github/workflows/release.yml`) and nothing else is signed.
+
+Team roles:
+
+- Committers and reviewers: [Otabek Sadiridinov](https://github.com/otabekoff)
+- Approvers: [Otabek Sadiridinov](https://github.com/otabekoff)
+
+### Privacy policy
+
+This program will not transfer any information to other networked systems
+unless specifically requested by the user. It has no telemetry, accounts or
+update checks. Camera frames stay on the computer: they are shown in the
+overlay and, if the virtual camera is switched on, handed to the applications
+on the same computer that open that camera. The only network activity is
+opening the project and donation links in your browser when you click them.
 
 ## License and credits
 
@@ -411,8 +450,6 @@ If Preview Cam is useful to you, you can support its development at
 - **Virtual camera scope.** The "Preview Cam" device is a DirectShow
   device. OBS and most desktop capture software use DirectShow; applications
   that enumerate cameras only through Media Foundation will not list it.
-  Updating the application while another program has the camera open can
-  fail to replace `preview_vcam.dll`; close that program first.
 - **Opacity** applies to the whole window, including the hover controls.
 - The debug build uses considerably more memory and CPU than the release
   build; judge performance with `--release`.
